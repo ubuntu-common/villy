@@ -1,17 +1,22 @@
-CC := g++
-FLAGS := -o
+CXX := g++
 NAME := villy
 BUILD_DIR := build
+FLAGS := -O3
 
-make_dir:
-	mkdir -p $(BUILD_DIR)
+SRC != find . -type f -name '*.cpp'
 
-compile: *.cpp
-	$(CC) $^ $(FLAGS) $(BUILD_DIR)/$(NAME)
+compile: $(BUILD_DIR)/$(NAME)
 
-build: make_dir compile
+$(BUILD_DIR)/$(NAME): $(SRC) | $(BUILD_DIR)
+	$(CXX) $^ $(FLAGS) -o $@
 
-.PHONY: clean
+$(BUILD_DIR):
+	mkdir -p $@
 
-clean: 
-	rm -rf $(BUILD_DIR)
+.PHONY: clean compile fclean
+
+clean:
+	$(RM) -r $(BUILD_DIR)
+
+fclean: clean
+	$(RM) $(BUILD_DIR)/$(NAME)
