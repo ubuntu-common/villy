@@ -10,7 +10,8 @@ struct UsbDevice
     using volume = std::list<std::string>;
 public:
     UsbDevice(std::string _device_name): 
-            sector_size(2048), device_size(), device_name(_device_name)
+            sector_size(2048), device_size(0), 
+            physical_name(""), device_name(_device_name)
     {   }
 public:
     std::int32_t sector_size;
@@ -42,7 +43,7 @@ void write_image(T _src, T _dst)
     std::unique_ptr<char> buffer(new char[transfer_block_size]());
 
     //
-    
+
     //
 }
 
