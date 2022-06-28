@@ -1,5 +1,6 @@
-#include <getopt.h>
 #include <iostream>
+#include <getopt.h>
+#include <fstream>
 #include <memory>
 #include <list>
 
@@ -9,17 +10,23 @@ struct UsbDevice
 {
     using volume = std::list<std::string>;
 public:
-    UsbDevice(std::string _device_name): 
-            sector_size(2048), device_size(0), 
-            physical_name(""), device_name(_device_name)
+    UsbDevice(std::string _device_name = "unknown") noexcept: 
+            sector_size(2048), device_size(0),
+            physical_name("physical_device_" + std::to_string(device_counter++)), 
+            device_name(_device_name)
     {   }
 public:
     std::int32_t sector_size;
     std::int64_t device_size;
-    volume volumes;
-    std::string physical_name;    
+public:
+    std::string physical_name;
     std::string device_name;
+private:
+    static int device_counter;
+    volume volumes;
 };
+
+int UsbDevice::device_counter = 0;
 
 static struct option long_opts[] =
 {
@@ -40,11 +47,23 @@ static struct option long_opts[] =
 template<class T>
 void write_image(T _src, T _dst)
 {
+    std::ifstream image(_src, std::ios_base::in | std::ios_base::binary);
+    std::ofstream to_file(_dst, std::ios_base::out | std::ios_base::binary);
     std::unique_ptr<char> buffer(new char[transfer_block_size]());
 
-    //
+    UsbDevice usb;
 
-    //
+    if(!image.is_open()){
+        throw std::runtime_error("error: image not found");
+    }
+
+    std::int64_t read_bytes = 0, write_bytes = 0;
+    
+    while(true){   
+        //if((read_bytes = image.read(buffer.get(), transfer_block_size)) //){
+
+        //}  
+    }
 }
 
 int main(int argc, char **argv)
