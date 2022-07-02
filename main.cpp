@@ -1,17 +1,17 @@
 #include <iostream>
 #include <getopt.h>
 #include <fstream>
-#include <memory>
+#include <array>
 #include <list>
 
-constexpr std::size_t transfer_block_size = 1024 * 1024;
+constexpr std::size_t TRANSFER_BLOCK_SIZE = 1024 * 1024;
 
 struct UsbDevice
 {
     using volume = std::list<std::string>;
 public:
     UsbDevice(std::string _device_name = "unknown") noexcept: 
-            sector_size(2048), device_size(0),
+            sector_size(512), device_size(0),
             physical_name("physical_device_" + std::to_string(device_counter++)), 
             device_name(_device_name)
     {   }
@@ -44,26 +44,45 @@ static struct option long_opts[] =
          --log-file=valgrind-out.txt \
          ./villy -h
 
-template<class T>
-void write_image(T _src, T _dst)
+template<class T> 
+void write_image(T _src, T _dst, const UsbDevice& _usb_device)
 {
     std::ifstream image(_src, std::ios_base::in | std::ios_base::binary);
     std::ofstream to_file(_dst, std::ios_base::out | std::ios_base::binary);
-    std::unique_ptr<char> buffer(new char[transfer_block_size]());
+    std::array<char, TRANSFER_BLOCK_SIZE> buffer;
 
-    UsbDevice usb;
+    buffer.fill(0);
 
     if(!image.is_open()){
         throw std::runtime_error("error: image not found");
     }
 
-    std::int64_t read_bytes = 0, write_bytes = 0;
+    if(!to_file.is_open()){
+        throw std::runtime_error( "error: path to write not found");
+    }
+
+    std::streamsize read_bytes = 0, write_bytes = 0;
     
     while(true){   
-        //if((read_bytes = image.read(buffer.get(), transfer_block_size)) //){
+        if((read_bytes = image.read(buffer.data(), TRANSFER_BLOCK_SIZE).gcount()) <= 0){
+            throw std::runtime_error("error: failed to read image file");
+        }
 
-        //}  
+        if((write_bytes = to_file.write(buffer.data(), read_bytes).tellp()) <= 0){
+            throw std::runtime_error("error: failed to write file");
+        }
+
+        if(read_bytes != write_bytes){
+            throw std::runtime_error("error: the number of bytes read does not match the number of bytes written");
+
+        }
+
+        //we need to get iso file size and read untill reached iso file size
+        //rewrite this, doesnt work
+        break;
     }
+
+    std::cout << "succes to write file" << std::endl;   
 }
 
 int main(int argc, char **argv)
@@ -91,7 +110,9 @@ int main(int argc, char **argv)
     }
 
     try{
-        write_image<std::string>(source, destination);
+        UsbDevice usb("flash1");
+        
+        write_image<std::string>("arciso.iso", "tst", usb);
     }catch(const std::runtime_error& err){
         std::cerr << err.what() << std::endl;
     }   
