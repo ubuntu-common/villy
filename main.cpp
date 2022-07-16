@@ -49,6 +49,7 @@ void write_image(T _src, T _dst, const UsbDevice& _usb_device)
 {
     std::ifstream image(_src, std::ios_base::in | std::ios_base::binary);
     std::ofstream to_file(_dst, std::ios_base::out | std::ios_base::binary);
+
     std::array<char, TRANSFER_BLOCK_SIZE> buffer;
 
     buffer.fill(0);
